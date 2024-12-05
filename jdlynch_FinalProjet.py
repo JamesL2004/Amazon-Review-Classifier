@@ -9,6 +9,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.sentiment import SentimentIntensityAnalyzer
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from nltk.corpus import stopwords
 from scipy.sparse import hstack
 from scipy.sparse import csr_matrix
@@ -19,12 +20,17 @@ def getScores(text):
     sentiment = sia.polarity_scores(text)
     return sentiment['pos'], sentiment['neu'], sentiment['neg']
 
-def processText(text):
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import wordnet
 
+nltk.download('wordnet')
+
+lemmatizer = WordNetLemmatizer()
+
+def processText(text):
     text = text.lower()
     text = ''.join([char for char in text if char.isalnum() or char.isspace()])
-    text = ' '.join([word for word in text.split() if word not in stopwords])
-
+    text = ' '.join([lemmatizer.lemmatize(word) for word in text.split() if word not in stopwords])
     return text
 
 df = pd.read_csv("train.csv", delimiter=",")
@@ -75,3 +81,12 @@ classifierSVM.fit(X_train_combined, y_train)
 otherClassifierTestPred = classifierSVM.predict(X_test_combined)
 npYtest = np.array(y_test)
 print("SVM " + " Test set score: {:.2f}".format(np.mean(otherClassifierTestPred == npYtest)))
+
+clf = DecisionTreeClassifier(random_state=42)
+
+clf.fit(X_train_vec, y_train)
+Y_pred = clf.predict(X_test_vec)
+
+print("Accuracy:", accuracy_score(y_test, Y_pred))
+print("\nClassification Report:\n", classification_report(y_test, Y_pred))
+print("\nConfusion Matrix:\n", confusion_matrix(y_test, Y_pred))
