@@ -16,6 +16,8 @@ from scipy.sparse import csr_matrix
 
 sia = SentimentIntensityAnalyzer()
 
+nltk.download('stopwords')
+
 def getScores(text):
     sentiment = sia.polarity_scores(text)
     return sentiment['pos'], sentiment['neu'], sentiment['neg']
